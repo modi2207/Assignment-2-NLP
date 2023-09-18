@@ -10,13 +10,13 @@ class TraigramPerplexity:
         """
         constructors initialize all necessary variables.
         """
-        self.traigramDF=pd.read_csv(os.getcwd()+"\\counts\\trigram_counts.csv")
+        self.traigramDF=pd.read_csv(os.getcwd()+"\\..\\results\\traigram_counts.csv")
         self.traigramDF['Count After Smoothing'] = np.NAN
         self.traigramDF["Actual Conditional Probability"] = np.NAN
         self.traigramDF["Conditional Probability After Smoothing"] = np.NAN
-        self.biagramDF = pd.read_csv(os.getcwd() + "\\results\\biagram_counts.csv")
-        self.unigramDF = pd.read_csv(os.getcwd() + "\\results\\unigramCounts.csv")
-        self.V = len(self.unigramDF.index)  # vocabulary size for smoothing. We have taken total unique unigrams as vocabulary
+        self.biagramDF = pd.read_csv(os.getcwd()+"\\..\\results\\biagram_counts.csv")
+        self.unigramDF = pd.read_csv(os.getcwd()+"\\..\\results\\unigramCounts.csv")
+        self.V = len(self.unigramDF.index)+43067  # vocabulary size for smoothing. We have taken total unique unigrams as vocabulary
         self.K = 1    # smoothing factor
         self.N=0
         self.biagramCounts={}  # dictionary contains count for each biagram
@@ -36,12 +36,13 @@ class TraigramPerplexity:
 
         for i in range(0,len(self.traigramDF)):
             c= self.biagramCounts[str([eval(self.traigramDF.iloc[i,0])[0],eval(self.traigramDF.iloc[i,0])[1]])] if str([eval(self.traigramDF.iloc[i,0])[0],eval(self.traigramDF.iloc[i,0])[1]]) in self.biagramCounts else 0
+            print("c: ",c)
             self.traigramDF.iloc[i,2]=((self.traigramDF.iloc[i,1]+self.K)/(c+self.K*self.V))*c  # Effective count of triagram after smoothing
             self.traigramDF.iloc[i,3]=(self.traigramDF.iloc[i,1]/c)       # probabilty of given triagram in corpus (before smoothing)
             self.traigramDF.iloc[i,4]=((self.traigramDF.iloc[i,1]+self.K)/(c+self.K*self.V))    #  probability of given traigram after smoothing
             self.traigramProbability[self.traigramDF.iloc[i,0]]=self.traigramDF.iloc[i,4]
 
-        self.traigramDF.to_csv("results\\traigram_counts.csv",index=False)
+        self.traigramDF.to_csv(os.getcwd()+"\\..\\results\\traigram_counts.csv",index=False)
         self.findPerplexity()
     def getPerplexity(self,data):
         """
@@ -58,6 +59,9 @@ class TraigramPerplexity:
             # consider at most 2 context word as we use triagram for finding perplexity
 
             for prev in range(ind, prev_ind, -1):
+                if data[prev] == '[END]\n':
+                    data[prev] = str(data[prev])
+                    data[prev] = data[prev][0:len(data[prev]) - 1]
                 context.append(data[prev])
 
             context = list(reversed(context))
@@ -65,18 +69,24 @@ class TraigramPerplexity:
 
             if len(context) == 1:
                 if context[0] in self.unigramProbability:
+                    print("got n-gram")
                     probSum += math.log2(self.unigramProbability[context[0]])
                 else:
+                    print("not got n-gram")
                     probSum+=math.log2(self.findUnknownProbability(context))
             elif len(context) == 2:
                 if str(context) in self.biagramProbability:
+                    print("got n-gram")
                     probSum += math.log2(self.biagramProbability[str(context)])
                 else:
+                    print("not got n-gram")
                     probSum += math.log2(self.findUnknownProbability(context))
             elif len(context) == 3:
                 if str(context) in self.traigramProbability:
+                    print("got n-gram")
                     probSum += math.log2(self.traigramProbability[str(context)])
                 else:
+                    print("not got n-gram")
                     probSum += math.log2(self.findUnknownProbability(context))
 
         probSum = abs(probSum)
@@ -103,7 +113,7 @@ class TraigramPerplexity:
         This method read line by line data from testing_data.txt and call getPerplexity() method for each line
         and append line & it's perplexity to pandas dataframe.
         """
-        file=open('testing_data.txt','r',encoding="utf8")
+        file=open('..//data//testing_data.txt','r',encoding="utf8")
         lines=file.readlines()
         traigramPPDF=[]
         for line in lines:
@@ -111,7 +121,7 @@ class TraigramPerplexity:
             traigramPPDF.append([line,perplexity])
         df=pd.DataFrame(traigramPPDF,columns=['Data','Perplexity'])
         df.loc[len(df), :] = {'Perplexity': df["Perplexity"].mean()}
-        df.to_csv("results\\traigramPerplexity.csv")
+        df.to_csv(os.getcwd()+"\\..\\results\\traigram_Perplexity_with_smothing.csv")
 
 traigramPerplexity=TraigramPerplexity()
 

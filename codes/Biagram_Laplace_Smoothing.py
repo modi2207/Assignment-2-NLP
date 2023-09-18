@@ -9,12 +9,12 @@ class BiagramPerplexity:
         """
         constructors initialize all necessary variables.
         """
-        self.biagramDF=pd.read_csv(os.getcwd()+"\\counts\\bigram_counts.csv")
+        self.biagramDF=pd.read_csv(os.getcwd()+"\\..\\results\\biagram_counts.csv")
         self.biagramDF['Count After Smoothing'] = np.NAN
         self.biagramDF["Actual Conditional Probability"] = np.NAN
         self.biagramDF["Conditional Probability After Smoothing"] = np.NAN
-        self.unigramDF = pd.read_csv(os.getcwd() + "\\counts\\unigram_counts.csv")
-        self.V = len(self.unigramDF.index)  # vocabulary size for smooting. We have taken total unique unigrams as vocabulary
+        self.unigramDF = pd.read_csv(os.getcwd()+"\\..\\results\\unigramCounts.csv")
+        self.V = len(self.unigramDF.index)+43067  # vocabulary size for smooting. We have taken total unique unigrams as vocabulary
         self.K = 1    # smoothing factor
         self.N=0
         self.unigramCounts={}  # dictionary contains count for each unigram
@@ -25,13 +25,18 @@ class BiagramPerplexity:
 
 
         for i in range(0,len(self.biagramDF)):
-            c= self.unigramCounts[eval(self.biagramDF.iloc[i,0])[0]] if eval(self.biagramDF.iloc[i,0])[0] in self.unigramCounts else 0
-            self.biagramDF.iloc[i,2]=((self.biagramDF.iloc[i,1]+self.K)/(c+self.K*self.V))*c  # Effective count of biagram after smoothing
-            self.biagramDF.iloc[i,3]=(self.biagramDF.iloc[i,1]/c)       # probabilty of given biagram in corpus (before smoothing)
-            self.biagramDF.iloc[i,4]=((self.biagramDF.iloc[i,1]+self.K)/(c+self.K*self.V))    #  probability of given biagram after smoothing
-            self.biagramProbability[self.biagramDF.iloc[i,0]]=self.biagramDF.iloc[i,4]
+            try:
 
-        self.biagramDF.to_csv("results\\biagram_counts.csv",index=False)
+                c= self.unigramCounts[eval(self.biagramDF.iloc[i,0])[0]] if eval(self.biagramDF.iloc[i,0])[0] in self.unigramCounts else 0
+                self.biagramDF.iloc[i,2]=((self.biagramDF.iloc[i,1]+self.K)/(c+self.K*self.V))*c  # Effective count of biagram after smoothing
+                self.biagramDF.iloc[i,3]=(self.biagramDF.iloc[i,1]/c)       # probabilty of given biagram in corpus (before smoothing)
+                self.biagramDF.iloc[i,4]=((self.biagramDF.iloc[i,1]+self.K)/(c+self.K*self.V))    #  probability of given biagram after smoothing
+                self.biagramProbability[self.biagramDF.iloc[i,0]]=self.biagramDF.iloc[i,4]
+            except Exception as err:
+                print(err)
+                print("bigram: ",self.biagramDF.iloc[i,0])
+
+        self.biagramDF.to_csv(os.getcwd()+"\\..\\results\\biagram_counts.csv",index=False)
         self.unigramCounts['UNKNOWN']=0
         self.findPerplexity()
     def getPerplexity(self,data):
@@ -41,10 +46,13 @@ class BiagramPerplexity:
         :return: Perplexty of sentence
         """
         data=list(data.split(', '))
-        print(len(data))
+        #print(len(data))
         probSum=0
         for i in range(0,len(data)):
             if i>0:
+                if data[i] == '[END]\n':
+                    data[i] = str(data[i])
+                    data[i] = data[i][0:len(data[i]) - 1]
                 probSum=probSum+math.log2(self.findProbability(data[i],data[i-1]))
             else:
                 probSum=math.log2(self.findProbability(data[i],None))
@@ -64,9 +72,10 @@ class BiagramPerplexity:
         else:
 
             try:
+                print("got word")
                 return self.biagramProbability[str([prev,word])]
             except KeyError as error:
-                print("error occurred")
+                print("error occurred: ",(prev,word))
                 c = self.unigramCounts[prev] if prev in self.unigramCounts else 0
                 return 1 / (c + self.K*self.V)
     def findPerplexity(self):
@@ -74,7 +83,7 @@ class BiagramPerplexity:
         This method read line by line data from testing_data.txt and call getPerplexity() method for each line
         and append line & it's perplexity to pandas dataframe.
         """
-        file=open('testing_data.txt','r',encoding="utf8")
+        file=open('..//data//testing_data.txt','r',encoding="utf8")
         lines=file.readlines()
         biagramPPDF=[]
         for line in lines:
@@ -82,7 +91,7 @@ class BiagramPerplexity:
             biagramPPDF.append([line,perplexity])
         df=pd.DataFrame(biagramPPDF,columns=['Data','Perplexity'])
         df.loc[len(df), :] = {'Perplexity': df["Perplexity"].mean()}
-        df.to_csv("results\\biagramPerplexity.csv")
+        df.to_csv(os.getcwd()+"\\..\\results\\biagram_Perplexity_with_smoothing.csv")
 
 biagramPerplexity=BiagramPerplexity()
 

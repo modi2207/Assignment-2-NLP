@@ -9,14 +9,14 @@ class QuadgramPerplexity:
         """
         constructors initialize all necessary variables.
         """
-        self.quadgramDF=pd.read_csv(os.getcwd()+"\\counts\\quadgram_counts.csv")
+        self.quadgramDF=pd.read_csv(os.getcwd()+"\\..\\results\\quadgram_counts.csv")
         self.quadgramDF['Count After Smoothing'] = np.NAN
         self.quadgramDF["Actual Conditional Probability"] = np.NAN
         self.quadgramDF["Conditional Probability After Smoothing"] = np.NAN
-        self.biagramDF = pd.read_csv(os.getcwd() + "\\results\\biagram_counts.csv")
-        self.unigramDF = pd.read_csv(os.getcwd() + "\\results\\unigramCounts.csv")
-        self.traigramDF = pd.read_csv(os.getcwd() + "\\results\\traigram_counts.csv")
-        self.V = len(self.unigramDF.index)  # vocabulary size for smooting. We have taken total unique unigrams as vocabulary
+        self.biagramDF = pd.read_csv(os.getcwd()+"\\..\\results\\biagram_counts.csv")
+        self.unigramDF = pd.read_csv(os.getcwd()+"\\..\\results\\unigramCounts.csv")
+        self.traigramDF = pd.read_csv(os.getcwd()+"\\..\\results\\traigram_counts.csv")
+        self.V = len(self.unigramDF.index)+43067  # vocabulary size for smooting. We have taken total unique unigrams as vocabulary
         self.K = 1    # smoothing factor
         self.N=0
         self.biagramCounts={}   # dictionary contains count for each bigram
@@ -41,12 +41,13 @@ class QuadgramPerplexity:
 
         for i in range(0,len(self.quadgramDF)):
             c= self.traigramCounts[str([eval(self.quadgramDF.iloc[i,0])[0],eval(self.quadgramDF.iloc[i,0])[1],eval(self.quadgramDF.iloc[i,0])[2]])] if str([eval(self.quadgramDF.iloc[i,0])[0],eval(self.quadgramDF.iloc[i,0])[1],eval(self.quadgramDF.iloc[i,0])[2]]) in self.traigramCounts else 0
+            print("c: ",c)
             self.quadgramDF.iloc[i,2]=((self.quadgramDF.iloc[i,1]+self.K)/(c+self.K*self.V))*c  # Effective count of biagram after smoothing
             self.quadgramDF.iloc[i,3]=(self.quadgramDF.iloc[i,1]/c)       # probabilty of given biagram in corpus (before smoothing)
             self.quadgramDF.iloc[i,4]=((self.quadgramDF.iloc[i,1]+self.K)/(c+self.K*self.V))    #  probability of given biagram after smoothing
             self.quadgramProbability[self.quadgramDF.iloc[i,0]]=self.quadgramDF.iloc[i,4]
 
-        self.quadgramDF.to_csv("results\\quadgram_counts.csv",index=False)
+        self.quadgramDF.to_csv(os.getcwd()+"\\..\\results\\quadgram_counts.csv",index=False)
         self.findPerplexity()
     def getPerplexity(self,data):
         """
@@ -63,30 +64,39 @@ class QuadgramPerplexity:
             # consider at most 3 context word as we use quadgram for finding perplexity
 
             for prev in range(ind, prev_ind, -1):
+                if data[prev] == '[END]\n':
+                    data[prev] = str(data[prev])
+                    data[prev] = data[prev][0:len(data[prev]) - 1]
                 context.append(data[prev])
-
             context = list(reversed(context))
-
-
             if len(context) == 1:
                 if context[0] in self.unigramProbability:
+                    print("got n-gram")
                     probSum += math.log2(self.unigramProbability[context[0]])
                 else:
+                    print("not got n-gram")
+                    
                     probSum+=math.log2(self.findUnknownProbability(context))
             elif len(context) == 2:
                 if str(context) in self.biagramProbability:
+                    print("got n-gram")
                     probSum += math.log2(self.biagramProbability[str(context)])
                 else:
+                    print("not got n-gram")
                     probSum += math.log2(self.findUnknownProbability(context))
             elif len(context) == 3:
                 if str(context) in self.traigramProbability:
+                    print("got n-gram")
                     probSum += math.log2(self.traigramProbability[str(context)])
                 else:
+                    print("not got n-gram")
                     probSum += math.log2(self.findUnknownProbability(context))
             else:
                 if str(context) in self.quadgramProbability:
+                    print("got n-gram")
                     probSum += math.log2(self.quadgramProbability[str(context)])
                 else:
+                    print("not got n-gram")
                     probSum += math.log2(self.findUnknownProbability(context))
 
         probSum = abs(probSum)
@@ -116,7 +126,7 @@ class QuadgramPerplexity:
         This method read line by line data from testing_data.txt and call getPerplexity() method for each line
         and append line & it's perplexity to pandas dataframe.
         """
-        file=open('testing_data.txt','r',encoding="utf8")
+        file=open('..//data//testing_data.txt','r',encoding="utf8")
         lines=file.readlines()
         quadgramPPDF=[]
         for line in lines:
@@ -124,7 +134,7 @@ class QuadgramPerplexity:
             quadgramPPDF.append([line,perplexity])
         df=pd.DataFrame(quadgramPPDF,columns=['Data','Perplexity'])
         df.loc[len(df), :] = {'Perplexity': df["Perplexity"].mean()}
-        df.to_csv("results\\quadgramPerplexity.csv")
+        df.to_csv(os.getcwd()+"\\..\\results\\quadgram_Perplexity_with_smoothing.csv")
 
 quadgramPerplexity=QuadgramPerplexity()
 
