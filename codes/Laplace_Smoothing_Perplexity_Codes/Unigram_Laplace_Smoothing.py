@@ -14,7 +14,7 @@ class UnigramPerplexity:
         self.probability={}  # dictionary contains probability after (applying laplace smoothing) for each unigram of corpus.
         self.V = len(self.unigramCounts.index)+43067  # vocabulary size for smoothing. We have taken total unique unigrams as vocabulary
         self.N = 0          # total tokens in corpus
-        self.K = 3            # smoothing factor
+        self.K = 1            # smoothing factor
         for i in range(0,len(self.unigramCounts)):
             self.N=self.N+self.unigramCounts.iloc[i,1]
         for i in range(0,len(self.unigramCounts)):
@@ -24,7 +24,7 @@ class UnigramPerplexity:
             self.unigramCounts.iloc[i,4]=(self.unigramCounts.iloc[i,1]+self.K)/(self.K*self.V+self.N)   # Probability of given unigram after smoothing
             self.unigramCounts.iloc[i,3]=self.unigramCounts.iloc[i,1]/self.N    # Probability of given unigram before smoothing
             self.unigramCounts.iloc[i,2]=((self.unigramCounts.iloc[i,1]+self.K)/(self.K*self.V+self.N))*(self.N)  # efective unigram count after smoothing
-        self.unigramCounts.to_csv(os.getcwd()+"\\..\\results\\unigramCounts_additive.csv",index=False)
+        self.unigramCounts.to_csv(os.getcwd()+"\\..\\results\\unigramCounts.csv",index=False)
 
         self.probability['UNKNOWN']=self.K/(self.N+self.K*self.V)
         self.findPerplexity()
@@ -78,7 +78,7 @@ class UnigramPerplexity:
             unigramDF.append([line,perplexity])
         df=pd.DataFrame(unigramDF,columns=['Data','Perplexity'])
         df.loc[len(df), :] = {'Perplexity': df["Perplexity"].mean()}
-        df.to_csv(os.getcwd()+"\\..\\results\\unigram_Perplexity_with_smoothing_additive.csv",index=False)
+        df.to_csv(os.getcwd()+"\\..\\results\\unigram_Perplexity_with_smoothing.csv",index=False)
 unigramPerplexity=UnigramPerplexity()
 
 

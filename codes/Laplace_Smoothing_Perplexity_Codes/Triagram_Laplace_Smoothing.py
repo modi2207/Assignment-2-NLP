@@ -14,10 +14,10 @@ class TraigramPerplexity:
         self.traigramDF['Count After Smoothing'] = np.NAN
         self.traigramDF["Actual Conditional Probability"] = np.NAN
         self.traigramDF["Conditional Probability After Smoothing"] = np.NAN
-        self.biagramDF = pd.read_csv(os.getcwd()+"\\..\\results\\biagram_counts_additive.csv")
-        self.unigramDF = pd.read_csv(os.getcwd()+"\\..\\results\\unigramCounts_additive.csv")
+        self.biagramDF = pd.read_csv(os.getcwd()+"\\..\\results\\biagram_counts.csv")
+        self.unigramDF = pd.read_csv(os.getcwd()+"\\..\\results\\unigramCounts.csv")
         self.V = len(self.unigramDF.index)+43067  # vocabulary size for smoothing. We have taken total unique unigrams as vocabulary
-        self.K = 3    # smoothing factor
+        self.K = 1    # smoothing factor
         self.N=0
         self.biagramCounts={}  # dictionary contains count for each biagram
         self.unigramCounts={}  # dictionary contains count for each unigram
@@ -42,7 +42,7 @@ class TraigramPerplexity:
             self.traigramDF.iloc[i,4]=((self.traigramDF.iloc[i,1]+self.K)/(c+self.K*self.V))    #  probability of given traigram after smoothing
             self.traigramProbability[self.traigramDF.iloc[i,0]]=self.traigramDF.iloc[i,4]
 
-        self.traigramDF.to_csv(os.getcwd()+"\\..\\results\\traigram_counts_additive.csv",index=False)
+        self.traigramDF.to_csv(os.getcwd()+"\\..\\results\\traigram_counts.csv",index=False)
         self.findPerplexity()
     def getPerplexity(self,data):
         """
@@ -121,7 +121,7 @@ class TraigramPerplexity:
             traigramPPDF.append([line,perplexity])
         df=pd.DataFrame(traigramPPDF,columns=['Data','Perplexity'])
         df.loc[len(df), :] = {'Perplexity': df["Perplexity"].mean()}
-        df.to_csv(os.getcwd()+"\\..\\results\\traigram_Perplexity_with_smothing_additive.csv")
+        df.to_csv(os.getcwd()+"\\..\\results\\traigram_Perplexity_with_smothing.csv")
 
 traigramPerplexity=TraigramPerplexity()
 

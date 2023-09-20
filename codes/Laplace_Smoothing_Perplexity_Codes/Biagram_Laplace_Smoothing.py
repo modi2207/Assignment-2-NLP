@@ -15,7 +15,7 @@ class BiagramPerplexity:
         self.biagramDF["Conditional Probability After Smoothing"] = np.NAN
         self.unigramDF = pd.read_csv(os.getcwd()+"\\..\\results\\unigramCounts.csv")
         self.V = len(self.unigramDF.index)+43067  # vocabulary size for smooting. We have taken total unique unigrams as vocabulary
-        self.K = 3    # smoothing factor
+        self.K = 1    # smoothing factor
         self.N=0
         self.unigramCounts={}  # dictionary contains count for each unigram
         self.biagramProbability={}   # dictionary contains biagram probability (after applying laplace smoothing) for each biagram
@@ -36,7 +36,7 @@ class BiagramPerplexity:
                 print(err)
                 print("bigram: ",self.biagramDF.iloc[i,0])
 
-        self.biagramDF.to_csv(os.getcwd()+"\\..\\results\\biagram_counts_additive.csv",index=False)
+        self.biagramDF.to_csv(os.getcwd()+"\\..\\results\\biagram_counts.csv",index=False)
         self.unigramCounts['UNKNOWN']=0
         self.findPerplexity()
     def getPerplexity(self,data):
@@ -91,7 +91,7 @@ class BiagramPerplexity:
             biagramPPDF.append([line,perplexity])
         df=pd.DataFrame(biagramPPDF,columns=['Data','Perplexity'])
         df.loc[len(df), :] = {'Perplexity': df["Perplexity"].mean()}
-        df.to_csv(os.getcwd()+"\\..\\results\\biagram_Perplexity_with_smoothing_additive.csv")
+        df.to_csv(os.getcwd()+"\\..\\results\\biagram_Perplexity_with_smoothing.csv")
 
 biagramPerplexity=BiagramPerplexity()
 

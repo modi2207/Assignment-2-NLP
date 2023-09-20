@@ -13,11 +13,11 @@ class QuadgramPerplexity:
         self.quadgramDF['Count After Smoothing'] = np.NAN
         self.quadgramDF["Actual Conditional Probability"] = np.NAN
         self.quadgramDF["Conditional Probability After Smoothing"] = np.NAN
-        self.biagramDF = pd.read_csv(os.getcwd()+"\\..\\results\\biagram_counts_additive.csv")
-        self.unigramDF = pd.read_csv(os.getcwd()+"\\..\\results\\unigramCounts_additive.csv")
-        self.traigramDF = pd.read_csv(os.getcwd()+"\\..\\results\\traigram_counts_additive.csv")
+        self.biagramDF = pd.read_csv(os.getcwd()+"\\..\\results\\biagram_counts.csv")
+        self.unigramDF = pd.read_csv(os.getcwd()+"\\..\\results\\unigramCounts.csv")
+        self.traigramDF = pd.read_csv(os.getcwd()+"\\..\\results\\traigram_counts.csv")
         self.V = len(self.unigramDF.index)+43067  # vocabulary size for smooting. We have taken total unique unigrams as vocabulary
-        self.K = 3    # smoothing factor
+        self.K = 1    # smoothing factor
         self.N=0
         self.biagramCounts={}   # dictionary contains count for each bigram
         self.traigramCounts={}   # dictionary contains count for each trigram
@@ -47,7 +47,7 @@ class QuadgramPerplexity:
             self.quadgramDF.iloc[i,4]=((self.quadgramDF.iloc[i,1]+self.K)/(c+self.K*self.V))    #  probability of given biagram after smoothing
             self.quadgramProbability[self.quadgramDF.iloc[i,0]]=self.quadgramDF.iloc[i,4]
 
-        self.quadgramDF.to_csv(os.getcwd()+"\\..\\results\\quadgram_counts_additive.csv",index=False)
+        self.quadgramDF.to_csv(os.getcwd()+"\\..\\results\\quadgram_counts.csv",index=False)
         self.findPerplexity()
     def getPerplexity(self,data):
         """
@@ -134,7 +134,7 @@ class QuadgramPerplexity:
             quadgramPPDF.append([line,perplexity])
         df=pd.DataFrame(quadgramPPDF,columns=['Data','Perplexity'])
         df.loc[len(df), :] = {'Perplexity': df["Perplexity"].mean()}
-        df.to_csv(os.getcwd()+"\\..\\results\\quadgram_Perplexity_with_smoothing_additive.csv")
+        df.to_csv(os.getcwd()+"\\..\\results\\quadgram_Perplexity_with_smoothing.csv")
 
 quadgramPerplexity=QuadgramPerplexity()
 
